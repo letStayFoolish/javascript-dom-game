@@ -14,32 +14,45 @@ const holdBtn = document.querySelector('.btn--hold') as HTMLButtonElement;
 const player0Section = document.querySelector('.player--0') as HTMLDivElement;
 const player1Section = document.querySelector('.player--1') as HTMLDivElement;
 
+let scores: number[],
+  currentScore: number,
+  activePlayer: 0 | 1,
+  isPlayable: boolean;
+
 // Initial state
-const scores = [0, 0];
-let currentScore = 0;
-let activePlayer = 0; // Player 1 or Player 2
+function startGame() {
+  scores = [0, 0];
+  currentScore = 0;
+  activePlayer = 0; // Player 1 or Player 2
+  isPlayable = true;
 
-score0El.textContent = '0';
-score1El.textContent = '0';
+  diceImg.classList.add('hidden');
 
-diceImg.classList.add('hidden');
+  score0El.textContent = '0';
+  currentScorePlayer0El.textContent = '0';
+  score1El.textContent = '0';
+  currentScorePlayer1El.textContent = '0';
+}
+startGame();
 
 // Rolling dice functionality
 function handleRollDice() {
-  diceImg.classList.remove('hidden');
+  if (isPlayable) {
+    const randomNumber = Math.trunc(Math.random() * 6) + 1;
 
-  const randomNumber = Math.trunc(Math.random() * 6) + 1;
+    // Display dice
+    diceImg.classList.remove('hidden');
+    diceImg.setAttribute('src', `dice-${randomNumber}.png`);
 
-  // Display dice
-  diceImg.setAttribute('src', `dice-${randomNumber}.png`);
-
-  // Check if player rolled 1, if true switch to the next player
-  if (randomNumber !== 1) {
-    (
-      document.getElementById(`current--${activePlayer}`) as HTMLElement
-    ).textContent = String((currentScore += randomNumber));
-  } else {
-    switchPlayer();
+    // Check if player rolled 1, if true switch to the next player
+    if (randomNumber !== 1) {
+      currentScore += randomNumber;
+      (
+        document.getElementById(`current--${activePlayer}`) as HTMLElement
+      ).textContent = String(currentScore);
+    } else {
+      switchPlayer();
+    }
   }
 }
 
@@ -59,14 +72,38 @@ function switchPlayer() {
 }
 
 function handleHold() {
-  scores[activePlayer] += currentScore;
+  if (isPlayable) {
+    scores[activePlayer] += currentScore;
+    (
+      document.getElementById(`score--${activePlayer}`) as HTMLElement
+    ).textContent = String(scores[activePlayer]);
 
-  if (scores[activePlayer] >= 100) {
-    // End game
+    if (scores[activePlayer] >= 100) {
+      // End game
+      isPlayable = false;
+      diceImg.classList.add('hidden');
+
+      (
+        document.querySelector(`.player--${activePlayer}`) as HTMLElement
+      ).classList.add('player--winner');
+
+      (
+        document.querySelector(`.player--${activePlayer}`) as HTMLElement
+      ).classList.remove('player--active');
+    } else {
+      switchPlayer();
+    }
   }
-
-  switchPlayer();
 }
 
 rollDiceBtn.addEventListener('click', handleRollDice);
 holdBtn.addEventListener('click', handleHold);
+newGameBtn.addEventListener('click', () => {
+  (
+    document.querySelector(`.player--${activePlayer}`) as HTMLElement
+  ).classList.remove('player--winner');
+  (document.querySelector(`.player--0`) as HTMLElement).classList.add(
+    'player--active',
+  );
+  startGame();
+});

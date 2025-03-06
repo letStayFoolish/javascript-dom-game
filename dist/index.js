@@ -10,25 +10,35 @@ const newGameBtn = document.querySelector('.btn--new');
 const holdBtn = document.querySelector('.btn--hold');
 const player0Section = document.querySelector('.player--0');
 const player1Section = document.querySelector('.player--1');
+let scores, currentScore, activePlayer, isPlayable;
 // Initial state
-const scores = [0, 0];
-let currentScore = 0;
-let activePlayer = 0; // Player 1 or Player 2
-score0El.textContent = '0';
-score1El.textContent = '0';
-diceImg.classList.add('hidden');
+function startGame() {
+    scores = [0, 0];
+    currentScore = 0;
+    activePlayer = 0; // Player 1 or Player 2
+    isPlayable = true;
+    diceImg.classList.add('hidden');
+    score0El.textContent = '0';
+    currentScorePlayer0El.textContent = '0';
+    score1El.textContent = '0';
+    currentScorePlayer1El.textContent = '0';
+}
+startGame();
 // Rolling dice functionality
 function handleRollDice() {
-    diceImg.classList.remove('hidden');
-    const randomNumber = Math.trunc(Math.random() * 6) + 1;
-    // Display dice
-    diceImg.setAttribute('src', `dice-${randomNumber}.png`);
-    // Check if player rolled 1, if true switch to the next player
-    if (randomNumber !== 1) {
-        document.getElementById(`current--${activePlayer}`).textContent = String((currentScore += randomNumber));
-    }
-    else {
-        switchPlayer();
+    if (isPlayable) {
+        const randomNumber = Math.trunc(Math.random() * 6) + 1;
+        // Display dice
+        diceImg.classList.remove('hidden');
+        diceImg.setAttribute('src', `dice-${randomNumber}.png`);
+        // Check if player rolled 1, if true switch to the next player
+        if (randomNumber !== 1) {
+            currentScore += randomNumber;
+            document.getElementById(`current--${activePlayer}`).textContent = String(currentScore);
+        }
+        else {
+            switchPlayer();
+        }
     }
 }
 function switchPlayer() {
@@ -40,12 +50,25 @@ function switchPlayer() {
     activePlayer = activePlayer === 0 ? 1 : 0;
 }
 function handleHold() {
-    scores[activePlayer] += currentScore;
-    if (scores[activePlayer] >= 100) {
-        // End game
+    if (isPlayable) {
+        scores[activePlayer] += currentScore;
+        document.getElementById(`score--${activePlayer}`).textContent = String(scores[activePlayer]);
+        if (scores[activePlayer] >= 100) {
+            // End game
+            isPlayable = false;
+            diceImg.classList.add('hidden');
+            document.querySelector(`.player--${activePlayer}`).classList.add('player--winner');
+            document.querySelector(`.player--${activePlayer}`).classList.remove('player--active');
+        }
+        else {
+            switchPlayer();
+        }
     }
-    switchPlayer();
 }
 rollDiceBtn.addEventListener('click', handleRollDice);
 holdBtn.addEventListener('click', handleHold);
-console.log('Nemanja');
+newGameBtn.addEventListener('click', () => {
+    document.querySelector(`.player--${activePlayer}`).classList.remove('player--winner');
+    document.querySelector(`.player--0`).classList.add('player--active');
+    startGame();
+});
